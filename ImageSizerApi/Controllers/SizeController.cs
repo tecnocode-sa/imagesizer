@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Net;
 using Microsoft.AspNetCore.Mvc;
 using SkiaSharp;
@@ -20,7 +19,7 @@ namespace ImageSizerApi.Controllers
         /// <param name="apiKey"></param>
         /// <returns>image byte[]</returns>
         [HttpGet]
-        public byte[] Get(string url, int size, string apiKey)
+        public IActionResult Get(string url, int size, string apiKey)
         {
             if (apiKey != APIKEY)
                 return null;
@@ -51,14 +50,15 @@ namespace ImageSizerApi.Controllers
 
                             using (var resized = original.Resize(new SKImageInfo(width, height), SKBitmapResizeMethod.Lanczos3))
                             {
-                                if (resized == null) return imageBytes;
+                                if (resized == null) return File(imageBytes, "image/jpeg");
 
                                 using (var image = SKImage.FromBitmap(resized))
                                 {
                                     using (var output = new MemoryStream())
                                     {
                                         image.Encode(SKEncodedImageFormat.Jpeg, QUALITY).SaveTo(output);
-                                        return output.ToArray();
+
+                                        return File(output.ToArray(), "image/jpeg");
                                     }
                                 }
                             }
@@ -68,7 +68,7 @@ namespace ImageSizerApi.Controllers
             }
             catch
             {
-                return imageBytes;
+                return File(imageBytes, "image/jpeg");
             }
         }
 
